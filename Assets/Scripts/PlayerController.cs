@@ -14,11 +14,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float rotateSpeed;
 
     public Animator animator;
+    private AudioSource playerAudio;
+    public AudioClip attackSound;
+    public AudioClip damageSound;
 
     private RaycastHit hit;
     private Ray ray;
     private EnemyAI enemy;
+    private int enemiesDefeated;
+    private int questGoal = 3;
 
+    public TextMeshProUGUI enemyDefeatedTxt;
     public TextMeshProUGUI healthTxt;
     public GameObject gameOverMenu;
 
@@ -30,6 +36,11 @@ public class PlayerController : MonoBehaviour
     private float timePassed;
     private int level;
     private int experience;
+
+    private void Start()
+    {
+        playerAudio = GetComponent<AudioSource>();
+    }
 
     // Update is called once per frame
     void Update()
@@ -87,6 +98,12 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("isAttacking", false);
         }
 
+        enemyDefeatedTxt.text = "Kill Three Goblins (" + enemiesDefeated + "/" + questGoal + ")";
+        if(enemiesDefeated == questGoal)
+        {
+            enemyDefeatedTxt.gameObject.SetActive(false);
+        }
+
         /*Interaction Input*/
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -109,6 +126,7 @@ public class PlayerController : MonoBehaviour
         if(Mathf.Abs(transform.position.magnitude - enemy.transform.position.magnitude) <= attackRange)
         {
             animator.SetBool("isAttacking", true);
+            playerAudio.PlayOneShot(attackSound, 1f);
             enemy.TakeDamage(attackPoints);
         }
         else
@@ -120,6 +138,12 @@ public class PlayerController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         healthPoints -= damage;
+        playerAudio.PlayOneShot(damageSound, 1f);
         Debug.Log(name + " took " + damage + " damage!");
+    }
+
+    public void SetEnemiesDefeated(int defeatedEnemies)
+    {
+        enemiesDefeated += defeatedEnemies;
     }
 }

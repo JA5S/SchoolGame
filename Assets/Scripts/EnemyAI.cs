@@ -17,7 +17,11 @@ public class EnemyAI : MonoBehaviour
     public bool isTargeted;
     private bool isBattling;
 
+    private GameManager gameManager;
     private Animator animator;
+    private AudioSource enemyAudio;
+    public AudioClip attackSound;
+    public AudioClip damageSound;
     private PlayerController player;
 
     private Vector3 startingPosition;
@@ -30,8 +34,10 @@ public class EnemyAI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gameManager = FindObjectOfType<GameManager>();
         player = FindObjectOfType<PlayerController>();
         animator = GetComponentInChildren<Animator>();
+        enemyAudio = GetComponent<AudioSource>();
 
         startingPosition = transform.position;
         moveTargetX = Random.Range(startingPosition.x, startingPosition.x + moveRange);
@@ -60,6 +66,7 @@ public class EnemyAI : MonoBehaviour
         }
 
         /*Combat*/
+        gameManager.setInCombat(isBattling);
         if(isBattling)
         {
             transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, transform.position - player.transform.position, rotateSpeed * Time.deltaTime, 0.0f));
@@ -91,6 +98,7 @@ public class EnemyAI : MonoBehaviour
         {
             Debug.Log(name + " has been defeated!");
             //gameObject.SetActive(false);
+            player.SetEnemiesDefeated(1);
             Destroy(gameObject);
         }
     }
@@ -104,11 +112,27 @@ public class EnemyAI : MonoBehaviour
         }
         
         health -= damage;
+        StartCoroutine(DamageSound());
         Debug.Log(name + " took " + damage + " damage!");
     }
 
     private void Attack()
     {
+        StartCoroutine(AttackSound());
         player.TakeDamage(attackPoints);
+    }
+
+    private IEnumerator DamageSound()
+    {
+        yield return new WaitForSeconds(0.25f);
+        enemyAudio.PlayOneShot(damageSound, 1f);
+        StopCoroutine(DamageSound());
+    }
+
+    private IEnumerator AttackSound()
+    {
+        yield return new WaitForSeconds(0.25f);
+        enemyAudio.PlayOneShot(attackSound, 1f);
+        StopCoroutine(AttackSound());
     }
 }
